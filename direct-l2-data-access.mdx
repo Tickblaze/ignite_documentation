@@ -1,0 +1,89 @@
+---
+title: "Assign and revoke L2 data"
+description: "Grant or remove Level 2 market data for a user."
+---
+
+Use this guide when a user needs Level 2 market data outside the normal account provisioning flow.
+
+## Before you begin
+
+Confirm you have:
+
+- A staff API token for your firm.
+- The numeric `user_id`.
+- The exact exchange entitlement name, such as `CBOT`, `CME`, `COMEX`, or `NYMEX`.
+
+Call the user entitlement endpoint:
+
+```http
+PATCH /api/users/{user_id}/entitlements/
+```
+
+<Warning>
+  Authorizing L2 makes the user billable as an L2 data user for that month and future months until you revoke it. Revoke L2 as soon as the user no longer needs that access.
+</Warning>
+
+## Assign or revoke L2
+
+<Tabs>
+  <Tab title="Assign L2">
+    Send the entitlement name with `level: "l2"` and `status: "AUTHORIZED"`.
+
+    ```json
+    {
+      "entitlement": "CBOT",
+      "level": "l2",
+      "status": "AUTHORIZED"
+    }
+    ```
+
+    If the user does not already have this L2 entitlement, this call adds it for your firm.
+  </Tab>
+
+  <Tab title="Revoke L2">
+    Send the same entitlement name with `level: "l2"` and `status: "REVOKED"`.
+
+    ```json
+    {
+      "entitlement": "CBOT",
+      "level": "l2",
+      "status": "REVOKED"
+    }
+    ```
+
+    Revoking removes L2 access for your firm without deleting the entitlement history.
+  </Tab>
+</Tabs>
+
+A successful assignment or revoke request returns `204 No Content`.
+
+## Verify the change
+
+Read the user's entitlement rows:
+
+```http
+GET /api/entitlements/user-entitlements/{user_id}/
+```
+
+Check `firm_status`; it is the status your firm controls.
+
+For an assigned L2 row, expect:
+
+```json
+{
+  "entitlement": {
+    "name": "CBOT",
+    "data_level": "l2"
+  },
+  "status": "AUTHORIZED",
+  "firm_status": "AUTHORIZED"
+}
+```
+
+For a revoked L2 row, expect `firm_status: "REVOKED"`.
+
+## If the request fails
+
+- `400`: Check the `user_id` and request body.
+- `404 Entitlement not found`: Check the entitlement name and confirm an L2 definition exists.
+- `404 User entitlement not found`: Confirm the `user_id` belongs to your firm.

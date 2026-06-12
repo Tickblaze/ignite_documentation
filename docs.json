@@ -25,7 +25,8 @@
             "group": "Firm onboarding",
             "pages": [
               "configure-your-firm",
-              "account-provisioning-and-entitlements"
+              "account-provisioning-and-entitlements",
+              "direct-l2-data-access"
             ]
           },
           {

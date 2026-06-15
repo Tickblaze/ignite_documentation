@@ -1720,6 +1720,135 @@
                 }
             }
         },
+        "/api/entitlements/user-entitlements/": {
+            "get": {
+                "operationId": "api_entitlements_user_entitlements_list",
+                "description": "Returns paginated aggregate user entitlement rows for users visible to the active Firm. Each row shows the global derived status and the active firm's own backing status, if any.",
+                "summary": "List user entitlements",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Page number."
+                    },
+                    {
+                        "in": "query",
+                        "name": "page_size",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Items per page."
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "AUTHORIZED",
+                                "PENDING",
+                                "REVOKED"
+                            ]
+                        },
+                        "description": "Filter rows by aggregate entitlement status."
+                    }
+                ],
+                "tags": [
+                    "Entitlements"
+                ],
+                "security": [
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedGlobalUserEntitlementList"
+                                },
+                                "examples": {
+                                    "PaginatedPendingEntitlements": {
+                                        "value": {
+                                            "meta": {
+                                                "count": 123,
+                                                "page": 1,
+                                                "page_size": 20,
+                                                "total_pages": 7,
+                                                "has_next": true,
+                                                "has_previous": false,
+                                                "next": "http://api.example.org/accounts/?page=2",
+                                                "previous": null
+                                            },
+                                            "results": [
+                                                {
+                                                    "user_id": 2,
+                                                    "user_email": "trader@example.com",
+                                                    "entitlement": {
+                                                        "name": "CBOT",
+                                                        "data_level": "l1",
+                                                        "exchanges": [
+                                                            "cbot"
+                                                        ]
+                                                    },
+                                                    "status": "PENDING",
+                                                    "firm_status": "PENDING",
+                                                    "created": "2026-03-20T09:15:00Z"
+                                                }
+                                            ]
+                                        },
+                                        "summary": "First page of aggregate entitlement rows"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/entitlements/user-entitlements/{user_id}/": {
+            "get": {
+                "operationId": "api_entitlements_user_entitlements_retrieve",
+                "description": "Returns aggregate entitlement rows for a `user_id` visible to the active Firm. The response includes the derived global status and the active firm's local status.",
+                "summary": "Retrieve user entitlements by user_id",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "user_id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Trader user id whose entitlement rows should be returned.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Entitlements"
+                ],
+                "security": [
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedGlobalUserEntitlementList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/health/": {
             "get": {
                 "operationId": "api_health_retrieve",
@@ -2328,7 +2457,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Sort by allowed fields only: `created`, `email`, `full_name`.. Supports single (`order_by=email`), descending (`order_by=-created`), and multi-column (`order_by=email,-created`)."
+                        "description": "Sort by allowed fields only: `created`, `email`, `full_name`, `prop_firm__slug`, `user_type`. Supports single (`order_by=email`), descending (`order_by=-created`), and multi-column (`order_by=email,-created`)."
                     },
                     {
                         "name": "page",
@@ -2382,14 +2511,16 @@
                         "name": "prop_firm_id",
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "description": "Comma-separated active membership Prop Firm IDs."
                     },
                     {
                         "in": "query",
                         "name": "prop_firm_slug",
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "description": "Comma-separated active membership Prop Firm slugs."
                     },
                     {
                         "in": "query",
@@ -2431,6 +2562,14 @@
                         },
                         "explode": true,
                         "style": "form"
+                    },
+                    {
+                        "in": "query",
+                        "name": "user_type",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by self-cert classification. Supported values: `pro`, `non_pro`."
                     }
                 ],
                 "tags": [
@@ -3088,7 +3227,7 @@
         "/api/users/{user_id}/entitlements/": {
             "patch": {
                 "operationId": "api_users_entitlements_partial_update",
-                "description": "Updates the active Firm's own backing row for one entitlement on the requested `user_id`. Call `PATCH /api/users/{user_id}/entitlements/` using the `user_id` value returned by `GET /api/entitlements/user-entitlements/`, and pass the entitlement name plus level in the request body to identify which package should be changed. Use `AUTHORIZED` to grant access, `REVOKED` to remove access, or `PENDING` to restore a firm-local pending state. A firm revoke does not remove another firm's backing, so the returned global status may remain `AUTHORIZED` or `PENDING` even when the active firm's local status is `REVOKED`.",
+                "description": "Updates the active Firm's own backing row for one entitlement on the requested `user_id`. L2 rows may be created directly to allow L2 market data. L1 rows must already exist from challenge-backed entitlement eligibility. Call `PATCH /api/users/{user_id}/entitlements/` using the `user_id` value returned by `GET /api/entitlements/user-entitlements/`, and pass either the entitlement name or exchange codes plus level in the request body to identify which package should be changed. Use `AUTHORIZED` to grant access, `REVOKED` to remove access, or `PENDING` to restore a firm-local pending state. A firm revoke does not remove another firm's backing, so the returned global status may remain `AUTHORIZED` or `PENDING` even when the active firm's local status is `REVOKED`.",
                 "summary": "Authorize or revoke user entitlements",
                 "parameters": [
                     {
@@ -3111,13 +3250,26 @@
                                 "$ref": "#/components/schemas/PatchedUserEntitlementStatusUpdate"
                             },
                             "examples": {
-                                "AuthorizeRequest": {
+                                "AuthorizeL2DataRequest": {
                                     "value": {
                                         "entitlement": "CBOT",
-                                        "level": "l1",
+                                        "level": "l2",
                                         "status": "AUTHORIZED"
                                     },
-                                    "summary": "Grant entitlements for a user"
+                                    "summary": "Allow L2 data for a user"
+                                },
+                                "AuthorizeMultipleExchanges": {
+                                    "value": {
+                                        "exchange_codes": [
+                                            "cme",
+                                            "cbot",
+                                            "comex",
+                                            "nymex"
+                                        ],
+                                        "level": "l2",
+                                        "status": "AUTHORIZED"
+                                    },
+                                    "summary": "Allow L2 data for several exchanges"
                                 },
                                 "RevokeRequest": {
                                     "value": {
@@ -3148,13 +3300,13 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "The active firm's targeted entitlement row was updated successfully."
+                        "description": "The active firm's targeted entitlement row was created or updated successfully."
                     },
                     "400": {
                         "description": "Invalid `user_id` or request payload."
                     },
                     "404": {
-                        "description": "The user, entitlement, or targeted user entitlement row was not found."
+                        "description": "The user or entitlement was not found, or a required L1 challenge-backed row does not exist."
                     }
                 }
             }
@@ -3200,6 +3352,76 @@
                             }
                         },
                         "description": ""
+                    }
+                }
+            }
+        },
+        "/api/users/export/": {
+            "get": {
+                "operationId": "api_users_export_retrieve",
+                "description": "Exports every user matching the same filters, search, sorting, permissions, and active Prop Firm scope used by the users list. The CSV mirrors the users-list response fields except user-deduplication duplicate-group details.",
+                "summary": "Export users CSV",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "email",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Case-insensitive exact match on user email."
+                    },
+                    {
+                        "in": "query",
+                        "name": "order_by",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Sort by allowed fields only: `created`, `email`, `full_name`, `prop_firm__slug`, `user_type`. Supports single (`order_by=email`), descending (`order_by=-created`), and multi-column (`order_by=email,-created`)."
+                    },
+                    {
+                        "in": "query",
+                        "name": "prop_firm_id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Comma-separated active membership Prop Firm IDs."
+                    },
+                    {
+                        "in": "query",
+                        "name": "prop_firm_slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Comma-separated active membership Prop Firm slugs."
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Case-insensitive partial match across user `id`, `email`, and `full_name`."
+                    },
+                    {
+                        "in": "query",
+                        "name": "user_type",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by self-cert classification. Supported values: `pro`, `non_pro`."
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "security": [
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV file with exported users."
                     }
                 }
             }
@@ -4974,6 +5196,14 @@
                 "type": "string",
                 "description": "* `PENDING_ACTIVATION` - Pending Activation\n* `ACTIVE` - Active\n* `PASSED` - Passed\n* `FAILED` - Failed\n* `BLOCKED` - Blocked\n* `DELETED` - Deleted\n* `LIVE_VERIFICATION` - Live Account Verification Required\n* `KYC_VERIFICATION_REQD` - KYC Verification Required\n* `PHASE_VERIFICATION_REQD` - Phase Verification Required\n* `PAUSED` - PAUSED\n* `SUBSCRIPTION_EXPIRED` - Subscription Expired\n* `PAYMENT_REQUESTED` - Payment Requested"
             },
+            "DataLevelEnum": {
+                "enum": [
+                    "l1",
+                    "l2"
+                ],
+                "type": "string",
+                "description": "* `l1` - Level 1\n* `l2` - Level 2"
+            },
             "DeclarationTypeEnum": {
                 "enum": [
                     "pro",
@@ -4992,6 +5222,38 @@
                 },
                 "required": [
                     "detail"
+                ]
+            },
+            "Entitlement": {
+                "type": "object",
+                "description": "Basic entitlement info",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Human-readable entitlement name.",
+                        "maxLength": 64
+                    },
+                    "data_level": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/DataLevelEnum"
+                            }
+                        ],
+                        "description": "Market-data depth or package tier for this entitlement.\n\n* `l1` - Level 1\n* `l2` - Level 2"
+                    },
+                    "exchanges": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "readOnly": true,
+                        "description": "Exchange codes covered by this entitlement."
+                    }
+                },
+                "required": [
+                    "data_level",
+                    "exchanges",
+                    "name"
                 ]
             },
             "FirmScopedLogin": {
@@ -5018,6 +5280,61 @@
                 ],
                 "type": "string",
                 "description": "* `STATIC` - Static\n* `TRAILING` - Trailing\n* `EOD` - End of Day"
+            },
+            "GlobalUserEntitlement": {
+                "type": "object",
+                "description": "Aggregate user entitlement with active-firm status context.",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "description": "User id for the entitlement holder."
+                    },
+                    "user_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true,
+                        "description": "Email address of the user this entitlement applies to."
+                    },
+                    "entitlement": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Entitlement"
+                            }
+                        ],
+                        "readOnly": true,
+                        "description": "Entitlement details for this user."
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Status19bEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "description": "Aggregate entitlement status across all firms backing this user. AUTHORIZED wins over PENDING, and PENDING wins over REVOKED.\n\n* `PENDING` - Pending Authorization\n* `AUTHORIZED` - Authorized\n* `REVOKED` - Revoked"
+                    },
+                    "firm_status": {
+                        "type": "string",
+                        "readOnly": true,
+                        "nullable": true,
+                        "description": "Status of the active firm's entitlement for this user. This can differ from the aggregate `status` when another firm is backing the entitlement."
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "description": "Timestamp when this entitlement first appeared in the aggregate entitlement view."
+                    }
+                },
+                "required": [
+                    "created",
+                    "entitlement",
+                    "firm_status",
+                    "status",
+                    "user_email",
+                    "user_id"
+                ]
             },
             "HealthStatus": {
                 "type": "object",
@@ -5744,6 +6061,91 @@
                     }
                 }
             },
+            "PaginatedGlobalUserEntitlementList": {
+                "type": "object",
+                "required": [
+                    "meta",
+                    "results"
+                ],
+                "properties": {
+                    "meta": {
+                        "type": "object",
+                        "required": [
+                            "count",
+                            "page",
+                            "page_size",
+                            "total_pages",
+                            "has_next",
+                            "has_previous",
+                            "next",
+                            "previous"
+                        ],
+                        "description": "Pagination metadata. Use `has_next`/`has_previous` for boolean page checks and `next`/`previous` for page URLs.",
+                        "example": {
+                            "count": 123,
+                            "page": 1,
+                            "page_size": 20,
+                            "total_pages": 7,
+                            "has_next": true,
+                            "has_previous": false,
+                            "next": "http://api.example.org/accounts/?page=2",
+                            "previous": null
+                        },
+                        "properties": {
+                            "count": {
+                                "type": "integer",
+                                "example": 123,
+                                "description": "Total number of rows matching the request."
+                            },
+                            "page": {
+                                "type": "integer",
+                                "example": 1,
+                                "description": "Current 1-indexed page number."
+                            },
+                            "page_size": {
+                                "type": "integer",
+                                "example": 20,
+                                "description": "Number of rows returned per page."
+                            },
+                            "total_pages": {
+                                "type": "integer",
+                                "example": 7,
+                                "description": "Total number of pages available."
+                            },
+                            "has_next": {
+                                "type": "boolean",
+                                "example": true,
+                                "description": "Whether another page is available after this one."
+                            },
+                            "has_previous": {
+                                "type": "boolean",
+                                "example": false,
+                                "description": "Whether a page is available before this one."
+                            },
+                            "next": {
+                                "type": "string",
+                                "nullable": true,
+                                "format": "uri",
+                                "example": "http://api.example.org/accounts/?page=2",
+                                "description": "URL for the next page, or null on the final page."
+                            },
+                            "previous": {
+                                "type": "string",
+                                "nullable": true,
+                                "format": "uri",
+                                "example": null,
+                                "description": "URL for the previous page, or null on the first page."
+                            }
+                        }
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GlobalUserEntitlement"
+                        }
+                    }
+                }
+            },
             "PaginatedOpenPositionList": {
                 "type": "object",
                 "required": [
@@ -6163,18 +6565,25 @@
                         "type": "string",
                         "description": "Human-readable entitlement name to update for this user."
                     },
+                    "exchange_codes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Exchange codes whose matching entitlements should be updated for this user. Use this instead of `entitlement` when changing multiple exchanges in one request."
+                    },
                     "level": {
                         "allOf": [
                             {
                                 "$ref": "#/components/schemas/LevelEnum"
                             }
                         ],
-                        "description": "Market-data level for the entitlement being updated.\n\n* `l1` - Level 1\n* `l2` - Level 2"
+                        "description": "Market-data level for the entitlement being updated. Missing rows may only be created for L2.\n\n* `l1` - Level 1\n* `l2` - Level 2"
                     },
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/UserEntitlementStatusUpdateStatusEnum"
+                                "$ref": "#/components/schemas/Status19bEnum"
                             }
                         ],
                         "description": "New status to apply to the active firm's entitlement for the selected user and entitlement. This does not change another firm's backing status.\n\n* `PENDING` - Pending Authorization\n* `AUTHORIZED` - Authorized\n* `REVOKED` - Revoked"
@@ -6725,6 +7134,15 @@
                 "type": "integer",
                 "description": "* `0` - Open\n* `1` - Closed"
             },
+            "Status19bEnum": {
+                "enum": [
+                    "PENDING",
+                    "AUTHORIZED",
+                    "REVOKED"
+                ],
+                "type": "string",
+                "description": "* `PENDING` - Pending Authorization\n* `AUTHORIZED` - Authorized\n* `REVOKED` - Revoked"
+            },
             "Status293Enum": {
                 "enum": [
                     "PENDING_ACTIVATION",
@@ -6909,15 +7327,6 @@
                         "default": true
                     }
                 }
-            },
-            "UserEntitlementStatusUpdateStatusEnum": {
-                "enum": [
-                    "PENDING",
-                    "AUTHORIZED",
-                    "REVOKED"
-                ],
-                "type": "string",
-                "description": "* `PENDING` - Pending Authorization\n* `AUTHORIZED` - Authorized\n* `REVOKED` - Revoked"
             },
             "UserReactivationRequest": {
                 "type": "object",

@@ -73,6 +73,25 @@ A successful authorization returns `204 No Content`.
 | `AUTHORIZED` | Active access for the entitlement row. |
 | `REVOKED` | Access removed. |
 
+## Market data levels
+
+Use the `level` field to choose the depth of market data you authorize for the user.
+
+| Level | Meaning |
+| --- | --- |
+| `l1` | Level 1. Top-of-book quotes (best bid and ask). |
+| `l2` | Level 2. Full market depth, including aggregated order book levels. |
+
+Authorize `l2` the same way you authorize `l1` — send the entitlement name with `"level": "l2"` and `"status": "AUTHORIZED"`. The user must already have an `l2` entitlement row (typically created from the challenge configuration) for the call to take effect.
+
+```json
+{
+  "entitlement": "CME",
+  "level": "l2",
+  "status": "AUTHORIZED"
+}
+```
+
 ## Integration guidance
 
 - Make entitlement authorization part of your account creation workflow.

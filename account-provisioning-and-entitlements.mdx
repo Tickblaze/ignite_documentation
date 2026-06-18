@@ -65,6 +65,20 @@ After account creation, the user may have `PENDING` entitlements. Your integrati
 
 A successful authorization returns `204 No Content`.
 
+## Authorize multiple exchanges in one request
+
+To update the same `level` and `status` across several exchanges for a user, send `exchange_codes` instead of `entitlement`. This applies the same action to every exchange in the list and replaces the need to issue one request per exchange.
+
+```json
+{
+  "exchange_codes": ["CBOT", "CME", "NYMEX"],
+  "level": "l1",
+  "status": "AUTHORIZED"
+}
+```
+
+Use this form when you are granting or revoking the same package across a known set of exchanges (for example, activating a bundle at account creation). Single-entitlement requests using `entitlement` continue to work unchanged, so keep using them when you need per-exchange `level` or `status` differences.
+
 ## Status values
 
 | Status | Meaning |

@@ -45,7 +45,7 @@ After account creation, the user may have `PENDING` entitlements. Your integrati
   </Step>
 
   <Step title="Authorize each required entitlement">
-    Authorize each exchange entitlement the user should receive.
+    Authorize the exchange entitlements the user should receive. You can update one exchange at a time, or update several exchanges at once at the same level.
 
     ```http
     PATCH /api/users/{user_id}/entitlements/
@@ -55,6 +55,8 @@ After account creation, the user may have `PENDING` entitlements. Your integrati
 
 ## Example authorization request
 
+Update a single exchange entitlement:
+
 ```json
 {
   "entitlement": "CBOT",
@@ -62,6 +64,24 @@ After account creation, the user may have `PENDING` entitlements. Your integrati
   "status": "AUTHORIZED"
 }
 ```
+
+## Update multiple exchanges in one request
+
+To apply the same `level` and `status` to several exchanges in a single call, send `exchange_codes` instead of `entitlement`. This is useful when onboarding a user who needs the same market data level across a group of exchanges.
+
+```json
+{
+  "exchange_codes": ["CBOT", "CME", "NYMEX"],
+  "level": "l1",
+  "status": "AUTHORIZED"
+}
+```
+
+Each exchange in `exchange_codes` is updated to the requested `status` at the given `level`. Use `REVOKED` to remove access for the listed exchanges in the same way.
+
+<Note>
+  Use either `entitlement` (single exchange) or `exchange_codes` (multiple exchanges) in a request, not both. The single-entitlement form continues to work unchanged.
+</Note>
 
 A successful authorization returns `204 No Content`.
 
@@ -76,7 +96,7 @@ A successful authorization returns `204 No Content`.
 ## Integration guidance
 
 - Make entitlement authorization part of your account creation workflow.
-- Make one authorization call per entitlement row the user should receive.
+- Make one authorization call per entitlement row the user should receive, or batch exchanges that share a level using `exchange_codes`.
 - Authorization is firm-specific. Each firm manages its own users independently.
 - Re-authorizing an already authorized entitlement is safe and will not create a new side effect.
 - You can revoke access later by sending `status: "REVOKED"`.

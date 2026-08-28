@@ -148,7 +148,7 @@
         "/api/accounts/{id}/": {
             "get": {
                 "operationId": "api_accounts_retrieve",
-                "description": "Returns information for a specific trading account.",
+                "description": "Returns information for a specific trading account. Account-level auto-liquidation data is unavailable: legacy fields are retained for compatibility and return null, and must not be interpreted as daily drawdown state.",
                 "summary": "Retrieve trading account information",
                 "parameters": [
                     {
@@ -192,6 +192,7 @@
                                             "current_balance": 10250.75,
                                             "previous_end_of_day_balance": 10120.5,
                                             "closed_pnl_today": 130.25,
+                                            "daily_drawdown_floor": 9750.0,
                                             "open_pnl": -45.1,
                                             "open_positions_count": 3,
                                             "peak_realized_balance": 10500.0,
@@ -199,9 +200,11 @@
                                             "peak_unrealized_balance": 10420.0,
                                             "lowest_unrealized_balance": 9950.0,
                                             "account_currency": "USD",
-                                            "auto_liquidation_enabled": true,
-                                            "auto_liquidation_criteria": "DAILY_DRAWDOWN",
-                                            "auto_liquidation_triggered": false,
+                                            "auto_liquidation_eNonebled": null,
+                                            "auto_liquidation_enabled": null,
+                                            "auto_liquidation_data_status": "unavailable",
+                                            "auto_liquidation_criteria": null,
+                                            "auto_liquidation_triggered": null,
                                             "auto_liquidation_timestamp": null,
                                             "long_positions_count": 2,
                                             "short_positions_count": 1,
@@ -3604,7 +3607,8 @@
                                 "LoginRequest": {
                                     "value": {
                                         "email": "trader@example.com",
-                                        "password": "StrongPassword123!"
+                                        "password": "StrongPassword123!",
+                                        "fingerprint_event_id": "opaque-browser-event-id"
                                     },
                                     "summary": "Login request"
                                 }
@@ -3687,7 +3691,7 @@
         "/auth/refresh/": {
             "post": {
                 "operationId": "auth_refresh_create",
-                "description": "Rotates a refresh token and returns a new session access token.",
+                "description": "Rotates a refresh token and returns a new firm-bound session access token. Rotation is bound to the submitted refresh token's Prop Firm and does not require callers to use that firm's request host.",
                 "summary": "Refresh access token",
                 "tags": [
                     "Auth"
@@ -4388,7 +4392,8 @@
                     "auto_liquidate_triggered_timestamp": {
                         "type": "string",
                         "readOnly": true,
-                        "description": "Timestamp when auto-liquidation was triggered, if applicable."
+                        "nullable": true,
+                        "description": "Deprecated legacy field. Account-level auto-liquidation data is unavailable; this field always returns null."
                     },
                     "failure_metadata": {
                         "readOnly": true,
@@ -4536,7 +4541,15 @@
                         "pattern": "^-?\\d{0,24}(?:\\.\\d{0,4})?$",
                         "readOnly": true,
                         "nullable": true,
-                        "description": "Failure threshold supplied with failure context, when available."
+                        "description": "Current account failure threshold supplied by OMS, when available."
+                    },
+                    "daily_drawdown_floor": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,24}(?:\\.\\d{0,4})?$",
+                        "readOnly": true,
+                        "nullable": true,
+                        "description": "Current daily drawdown floor supplied by OMS, when available."
                     },
                     "account_currency": {
                         "type": "string",
@@ -4546,22 +4559,42 @@
                     "auto_liquidation_eNonebled": {
                         "type": "string",
                         "readOnly": true,
-                        "description": "Indicates whether auto-liquidation is enabled for the account."
+                        "nullable": true,
+                        "description": "Deprecated legacy field retaining its historical spelling. Account-level auto-liquidation data is unavailable; this field always returns null."
+                    },
+                    "auto_liquidation_enabled": {
+                        "type": "boolean",
+                        "readOnly": true,
+                        "nullable": true,
+                        "description": "Whether account-level auto-liquidation is enabled. This data is unavailable and always returns null. See auto_liquidation_data_status."
+                    },
+                    "auto_liquidation_data_status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AutoLiquidationDataStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "default": "unavailable",
+                        "description": "Deprecated availability indicator for account-level auto-liquidation data. Always unavailable.\n\n* `unavailable` - unavailable"
                     },
                     "auto_liquidation_criteria": {
                         "type": "string",
                         "readOnly": true,
-                        "description": "Criteria used to determine when auto-liquidation should be triggered."
+                        "nullable": true,
+                        "description": "Deprecated legacy field. Account-level auto-liquidation data is unavailable; this field always returns null."
                     },
                     "auto_liquidation_triggered": {
                         "type": "string",
                         "readOnly": true,
-                        "description": "Indicates whether auto-liquidation has been triggered."
+                        "nullable": true,
+                        "description": "Deprecated legacy field. Account-level auto-liquidation data is unavailable; this field always returns null."
                     },
                     "auto_liquidation_timestamp": {
                         "type": "string",
                         "readOnly": true,
-                        "description": "Timestamp when auto-liquidation occurred, if triggered."
+                        "nullable": true,
+                        "description": "Deprecated legacy field. Account-level auto-liquidation data is unavailable; this field always returns null."
                     },
                     "long_positions_count": {
                         "type": "string",
@@ -4936,7 +4969,9 @@
                     "account_type",
                     "auto_liquidate_triggered_timestamp",
                     "auto_liquidation_criteria",
+                    "auto_liquidation_data_status",
                     "auto_liquidation_eNonebled",
+                    "auto_liquidation_enabled",
                     "auto_liquidation_timestamp",
                     "auto_liquidation_triggered",
                     "challenge_short_code",
@@ -4947,6 +4982,7 @@
                     "current_balance",
                     "current_balance_decimal",
                     "current_equity",
+                    "daily_drawdown_floor",
                     "daily_max_drawdown",
                     "daily_pnl",
                     "drawdown_type",
@@ -4993,6 +5029,13 @@
                     "unrealized_pnl",
                     "user_id"
                 ]
+            },
+            "AutoLiquidationDataStatusEnum": {
+                "enum": [
+                    "unavailable"
+                ],
+                "type": "string",
+                "description": "* `unavailable` - unavailable"
             },
             "BlankEnum": {
                 "enum": [
@@ -5478,6 +5521,12 @@
                     },
                     "password": {
                         "type": "string"
+                    },
+                    "fingerprint_event_id": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "description": "Optional opaque Fingerprint v4 event ID for non-blocking server verification.",
+                        "maxLength": 255
                     }
                 },
                 "required": [

@@ -71,6 +71,6 @@ Position events are most useful for closed-position workflows. When `positions` 
 - Dead-letter messages you cannot parse or process after your retry limit.
 - Do not assume every API-side update has a matching queue message unless SQS delivery was explicitly enabled for that event.
 
-<Note>
+<Callout type="info">
   SQS queue URLs and credentials are provided separately when SQS is enabled for your firm.
-</Note>
+</Callout>

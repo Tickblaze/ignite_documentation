@@ -1,33 +1,32 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
-> For Mintlify product knowledge (components, configuration, writing standards),
-> install the Mintlify skill: `npx skills add https://mintlify.com/docs`
-
 # Documentation project instructions
 
 ## About this project
 
-- This is a documentation site built on [Mintlify](https://mintlify.com)
-- Pages are MDX files with YAML frontmatter
-- Configuration lives in `docs.json`
-- Use the Mintlify MCP server, `https://mcp.mintlify.com`, to edit content and settings via MCP
-- Use the Mintlify docs MCP server, `https://www.mintlify.com/docs/mcp`, to query information about using Mintlify via MCP
-
-## Terminology
-
-{/* Add product-specific terms and preferred usage */}
-{/* Example: Use "workspace" not "project", "member" not "user" */}
+- This is the public Ignite API documentation site, built with Fumadocs and Next.js.
+- Author guides as MDX files with YAML frontmatter under `content/docs/`.
+- Configure navigation in `content/docs/meta.json` and nested `meta.json` files.
+- Configure MDX collections in `source.config.ts` and components in `mdx-components.tsx`.
+- Keep static assets under `public/`.
+- Generate API reference pages from `openapi.json` using `npm run generate:api`. Do not edit generated pages or `.source/`.
 
 ## Style preferences
 
-{/* Add any project-specific style rules below */}
-
-- Use active voice and second person ("you")
-- Keep sentences concise — one idea per sentence
-- Use sentence case for headings
-- Bold for UI elements: Click **Settings**
-- Code formatting for file names, commands, paths, and code references
+- Use active voice and second person ("you").
+- Keep sentences concise, with one idea per sentence.
+- Use sentence case for headings.
+- Bold UI elements: Click **Settings**.
+- Use code formatting for file names, commands, paths, and code references.
+- Use customer-facing terminology and avoid internal database details.
 
 ## Content boundaries
 
-{/* Define what should and shouldn't be documented */}
-{/* Example: Don't document internal admin features */}
+- Document public integration workflows and API behavior.
+- Do not change API contracts in `openapi.json` unless the API source of truth has already changed.
+- Preserve existing guide URLs when reorganizing content.
+- Keep changelog entries compatible with the `Update` component.
+
+## Validation
+
+- Run `npm run typecheck`, `npm run build`, and `git diff --check` before handing off changes.
+- Verify navigation, search, light/dark themes, and interactive components when changing the app.
+- Do not commit or push unless the user requests it.

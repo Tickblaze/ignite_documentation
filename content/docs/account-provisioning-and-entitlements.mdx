@@ -9,14 +9,16 @@ After account creation, the user may have `PENDING` entitlements. Your integrati
 
 All account and entitlement requests are evaluated in the active Prop Firm context. Use the same authenticated firm context for the complete flow; a user, challenge, phase, or entitlement configured for another firm is not a valid target.
 
-<Warning>
+<Callout type="warn">
   If you create the account but skip entitlement authorization, the user can remain eligible for market data but not receive active data access, meaning they cannot trade or see live market data. Always include entitlement authorization in your account provisioning flow.
-</Warning>
+</Callout>
 
 ## Recommended flow
 
 <Steps>
-  <Step title="Create or confirm the user">
+  <Step>
+
+    ### Create or confirm the user
     Create the user before creating an account for them.
 
     ```http
@@ -26,7 +28,9 @@ All account and entitlement requests are evaluated in the active Prop Firm conte
     Store the returned `user_id`. You will use that value when creating the account and when authorizing the user's entitlements.
   </Step>
 
-  <Step title="Create the trading account">
+  <Step>
+
+    ### Create the trading account
     Create the account against the correct challenge using the `user_id` from the user creation response. The smallest supported request is:
 
     ```http
@@ -44,7 +48,9 @@ All account and entitlement requests are evaluated in the active Prop Firm conte
     Store the returned `account_id` for later account operations and support lookups. If `phase_id` is omitted, the account uses the first phase configured for the challenge. An explicit `initial_balance` overrides the phase balance; otherwise the phase balance falls back to the challenge balance. Account creation may create `PENDING` entitlements based on the challenge configuration.
   </Step>
 
-  <Step title="Inspect required entitlements">
+  <Step>
+
+    ### Inspect required entitlements
     Read the user's entitlements after account creation using the stored `user_id`.
 
     ```http
@@ -54,7 +60,9 @@ All account and entitlement requests are evaluated in the active Prop Firm conte
     Use this response to find the exact `entitlement` and `level` values to send in the payload to authorize the individual entitlement returned by the API.
   </Step>
 
-  <Step title="Authorize each required entitlement">
+  <Step>
+
+    ### Authorize each required entitlement
     Authorize the exchange entitlement or entitlements the user should receive. You can target one named entitlement or several exchange codes in a single request; provide exactly one selector.
 
     ```http
@@ -129,6 +137,6 @@ An entitlement is a market-data package or exchange access level. The read endpo
 - Repeating the same status update is safe; downstream update notifications are emitted only when the status changes.
 - You can revoke access later by sending `status: "REVOKED"`.
 
-<Tip>
+<Callout type="info">
   For endpoint schemas and response details, use the API reference tab.
-</Tip>
+</Callout>

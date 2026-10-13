@@ -1,0 +1,19 @@
+{
+  "title": "Guides",
+  "pages": [
+    "---Get started---",
+    "index",
+    "urls-and-credentials",
+    "quickstart",
+    "---Firm onboarding---",
+    "configure-your-firm",
+    "account-provisioning-and-entitlements",
+    "direct-l2-data-access",
+    "---Integrations---",
+    "sqs-integration",
+    "---Operations---",
+    "deployment-window",
+    "changelog",
+    "api-reference"
+  ]
+}

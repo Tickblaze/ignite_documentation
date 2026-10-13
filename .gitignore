@@ -14,9 +14,11 @@
 .env.*
 !.env.example
 
-# Node and Mintlify local output
+# Node and Fumadocs local output
 node_modules/
-.mintlify/
+.source/
+content/docs/api-reference/generated/
+*.tsbuildinfo
 .cache/
 .turbo/
 .next/

@@ -15,14 +15,16 @@ Before you begin, you must have:
 - The correct `{BASE_URL}` for your firm.
 - The email and password for the account you want to authenticate.
 
-<Tip>
+<Callout type="info">
   If you do not have your firm slug or `{BASE_URL}` yet, start with [URLs and credentials](/urls-and-credentials).
-</Tip>
+</Callout>
 
 ## Authenticate
 
 <Steps>
-  <Step title="Request a session token">
+  <Step>
+
+    ### Request a session token
     Send your credentials to `POST /auth/login/`.
 
     ```bash
@@ -35,7 +37,9 @@ Before you begin, you must have:
     ```
   </Step>
 
-  <Step title="Read the token">
+  <Step>
+
+    ### Read the token
     The response includes a `key`. Session tokens are short-lived and expire after 3 hours.
 
     ```json
@@ -47,7 +51,9 @@ Before you begin, you must have:
     ```
   </Step>
 
-  <Step title="Send the token with each request">
+  <Step>
+
+    ### Send the token with each request
     Use the token in the `Authorization` header with the `Token` prefix.
 
     ```bash
@@ -73,6 +79,6 @@ Some endpoints require IDs from Ignite operational views:
 - `user_id`: Tickblaze Manager -> Users
 - `account_id`: Tickblaze Manager -> Accounts
 
-<Tip>
+<Callout type="info">
   After authentication, review [account provisioning and entitlements](/account-provisioning-and-entitlements) before automating account creation. Market data access requires an explicit entitlement authorization step.
-</Tip>
+</Callout>

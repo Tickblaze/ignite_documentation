@@ -19,14 +19,14 @@ Call the user entitlement endpoint:
 PATCH /api/users/{user_id}/entitlements/
 ```
 
-<Warning>
+<Callout type="warn">
   Authorizing L2 makes the user billable as an L2 data user for that month and future months until you revoke it. Revoke L2 as soon as the user no longer needs that access.
-</Warning>
+</Callout>
 
 ## Assign or revoke L2
 
-<Tabs>
-  <Tab title="Assign L2">
+<Tabs items={["Assign L2", "Revoke L2"]}>
+  <Tab value="Assign L2">
     Send the entitlement name with `level: "l2"` and `status: "AUTHORIZED"`.
 
     ```json
@@ -40,7 +40,7 @@ PATCH /api/users/{user_id}/entitlements/
     If the user does not already have this L2 entitlement, this call adds it for your firm.
   </Tab>
 
-  <Tab title="Revoke L2">
+  <Tab value="Revoke L2">
     Send the same entitlement name with `level: "l2"` and `status: "REVOKED"`.
 
     ```json

@@ -30,12 +30,6 @@
             ]
           },
           {
-            "group": "Integrations",
-            "pages": [
-              "sqs-integration"
-            ]
-          },
-          {
             "group": "Operations",
             "pages": [
               "deployment-window",
